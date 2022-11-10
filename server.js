@@ -25,15 +25,16 @@ io.on('connection', socket => {
         numUsers++;
         console.log("Number of users: ", numUsers);
 
-        var currentUserKey = createSharedKeyForUser(currUserSocketID);
-
+        var currentUserKeyDict = createSharedKeyForUser(currUserSocketID);
+        currUserDict = currentUserKeyDict;
         userAndPublicKeyDict.push({
-            userObject:   currentUserKey['userObject'],
-            userPublicKeyBase64: currentUserKey['userPublicKeyBase64']
+            userObject:   currentUserKeyDict['userObject'],
+            userPublicKeyBase64: currentUserKeyDict['userPublicKeyBase64'],
+            userSocketID: currUserSocketID,
         });
 
         if (numUsers > 1) {
-            createSharedSessionKey(userAndPublicKeyDict);
+            const sessionKey = createSharedSessionKey(userAndPublicKeyDict);
         }
 
         console.log(`${username} has connected to the server.`);
@@ -43,6 +44,7 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         console.log('User has disconnected');
+        numUsers--;
     });
 
     socket.on('chat-message', (chatMessage) => {
@@ -60,7 +62,8 @@ function createSharedKeyForUser(socketID) {
 
     const usernamePublicKeyDict = {
         userObject: userECDH,
-        userPublicKeyBase64: userPublicKeyBase64
+        userPublicKeyBase64: userPublicKeyBase64,
+        userSocketID: socketID,
     };
 
     console.log("User public key: ", usernamePublicKeyDict);
@@ -85,4 +88,6 @@ function createSharedSessionKey(usernamePublicKeyDict) {
     console.log("Shared keys should match: ", firstUserSharedKey == secondUserSharedKey);
     
     console.log("Shared key: ", firstUserSharedKey);
+
+    return firstUserSharedKey;
 }
