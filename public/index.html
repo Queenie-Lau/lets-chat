@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../css/style.css">
+<title>Let's Chat</title>
+</head>
+<body>
+
+	<div class="left-container">
+		<img id="home-graphic" src="../assets/lets-chat-home-graphic.png">
+	</div>
+
+	<div class="right-container">
+		<div class="chat-room-container">
+			<h1 id="title">Let's Chat</h1>
+			<h3 id="sub-heading">Welcome to Let's Chat</h3>
+			<p>Enter a username and select a room to begin.</p>
+			<div class="chat-room-content">
+				<form action="chat-room.html">
+					<div class="form-control">
+						<label for="username">Username</label>
+						<input
+							type="text"
+							name="username"
+							id="username"
+							placeholder="Enter a username"
+							required
+						/>
+					</div>
+					<div class="join-room-form">
+						<label for="select-room">Room</label>
+						<select name="room" id="room">
+							<option value="room0">Room 0</option>
+							<option value="room01">Room 1</option>
+							<option value="room02">Room 2</option>
+							<option value="room03">Room 3</option>
+							<option value="room04">Room 4</option>
+							<option value="room05">Room 5</option>
+							<option value="room06">Room 6</option>
+							<option value="room07">Room 7</option>
+						</select>
+					</div>
+
+					<div class="button-wrapper">
+						<button type="submit" id="join-chat-button">Join Chat</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
