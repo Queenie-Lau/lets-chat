@@ -14,6 +14,7 @@ const { username, room } = Qs.parse(
 */
 
 const socket = io();
+
 socket.emit(
     'joinSelectedRoom', 
     { username, room }
@@ -21,6 +22,11 @@ socket.emit(
 
 socket.on('message', (message) => 
     { console.log(message); }
+);
+
+socket.on('sessionKey', (sessionKey) =>
+    // Should be kept private between the two parties
+    { console.log("Session key", sessionKey); }
 );
 
 console.log("Emitted joinSelectedRoom");

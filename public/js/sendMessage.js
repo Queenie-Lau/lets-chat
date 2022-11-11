@@ -2,19 +2,24 @@ var form = document.getElementById('chat-message-form');
 var input = document.getElementById('message');
 
 form.addEventListener('submit', function(e) {
-  e.preventDefault();
-  if (input.value) {
+    e.preventDefault();
 
-    const rawMessage = input.value;
+    if (input.value) {
+        const rawMessage = input.value;
+        /*
+            TO DO: Encrypt message from current user before sending it the server
+        */
 
-    /*
-        TO DO: Encrypt message from current user before sending it the server
-    */
+        // Encrypt using raw message and session key
 
-    var ciphertext = CryptoJS.SHA512("Message"); 
-    console.log("Went in here: ", ciphertext);
-    
-    // socket.emit('chat-message', input.value);
-    input.value = '';
-  }
+        // TODO: REPLACE TEMP W/ SESSION KEY => download as a file to your computer
+            // modify params
+        var ciphertext = CryptoJS.AES.encrypt(rawMessage, "temp");
+        console.log("Cipher text: ", ciphertext.toString());
+        
+        // Send encrypted message to the server
+        socket.emit('encrypted-chat-message', ciphertext.toString());
+        input.value = '';
+    }
+
 });

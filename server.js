@@ -4,10 +4,12 @@ const http = require('http');
 const application = express();
 const socketio = require('socket.io');
 const crypto = require('crypto');
+const CryptoJS = require('crypto-js');
 const server = http.createServer(application);
 const io = socketio(server);
 var numUsers = 0;
 var userAndPublicKeyDict = [];
+var sessionKey;
 
 // Set up application
 application.use(express.static(path.join(__dirname, 'public')));
@@ -34,7 +36,9 @@ io.on('connection', socket => {
         });
 
         if (numUsers > 1) {
-            const sessionKey = createSharedSessionKey(userAndPublicKeyDict);
+            sessionKey = createSharedSessionKey(userAndPublicKeyDict);
+            console.log("Created session key");
+            socket.emit('session-key', sessionKey);
         }
 
         console.log(`${username} has connected to the server.`);
@@ -47,10 +51,14 @@ io.on('connection', socket => {
         numUsers--;
     });
 
-    socket.on('chat-message', (chatMessage) => {
-        console.log('Message sent: ' + chatMessage);
+    // Server receives the encrypted chat message
+    socket.on('encrypted-chat-message', (encryptedMessage) => {
+        console.log('Encrypted chat message: ' + encryptedMessage);
+        // Decrypt password using shared session key
+        var decryptedMessage = CryptoJS.AES.decrypt(encryptedMessage, sessionKey)
+                                .toString(CryptoJS.enc.Utf8);
+        // socket.emit('message', decryptedMessage);
     });
-
 
 })
 
@@ -86,8 +94,10 @@ function createSharedSessionKey(usernamePublicKeyDict) {
         secondUser.computeSecret(firstUserPublicKeyBase64, 'base64', 'hex');
 
     console.log("Shared keys should match: ", firstUserSharedKey == secondUserSharedKey);
-    
-    console.log("Shared key: ", firstUserSharedKey);
 
     return firstUserSharedKey;
+}
+
+function saveSharedSessionKeyLocally(sessinoKey) {
+
 }
