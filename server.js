@@ -7,6 +7,8 @@ var fs = require( 'fs' );
 const crypto = require('crypto');
 const CryptoJS = require('crypto-js');
 
+const addUserAndRoomTitle = require('./public/js/userJoinsServer.js');
+
 // Set up application
 var credentials = {
     key: fs.readFileSync(path.join(__dirname, 'ssl', 'privkey.pem')),
@@ -27,6 +29,9 @@ var numUsers = 0;
 var userAndPublicKeyDict = [];
 var sessionKey;
 
+var usernameAndRoom = [];
+var currUsername;
+
 io.on('connection', socket => {
     socket.on('joinSelectedRoom', (({ username, room }) => {
         // Send welcome message on client side
@@ -35,7 +40,8 @@ io.on('connection', socket => {
         const currUserSocketID = socket.id;
         numUsers++;
         console.log("Number of users: ", numUsers);
-
+        
+        currUsername = username;
         var currentUserKeyDict = createSharedKeyForUser(currUserSocketID);
         currUserDict = currentUserKeyDict;
         userAndPublicKeyDict.push({
@@ -43,6 +49,14 @@ io.on('connection', socket => {
             userPublicKeyBase64: currentUserKeyDict['userPublicKeyBase64'],
             userSocketID: currUserSocketID,
         });
+
+        usernameAndRoom.push({
+            username: username,
+            room: room,
+        });
+
+        // Send username and room to client
+        socket.emit('usernameAndRoom' ,  usernameAndRoom);
         
         // Get user public key from client
         socket.on('userAndPublicKeyDict', userAndPublicKeyDict => {
@@ -62,6 +76,9 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         console.log('User has disconnected');
+        const userToRemove = [currUsername];
+        usernameAndRoom = usernameAndRoom.filter(obj => !userToRemove.includes(obj.username));
+        
         if (numUsers > 0) {
             numUsers--;
         }
