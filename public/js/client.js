@@ -22,12 +22,29 @@ socket.emit(
 
 socket.on('message', (message) => 
     { console.log(message); }
-);
-
-socket.on('sessionKey', (sessionKey) =>
-    // Should be kept private between the two parties
-    { console.log("Session key", sessionKey); }
+    // raw message from client
 );
 
 console.log("Emitted joinSelectedRoom");
 console.log(username, room);
+
+socket.on('encrypted-msg-to-client', (encryptedMsg) =>
+    {
+        // TO DO: ENABLE DECRYPTION TO MESSAGES NOT RECEIVED BY YOU
+        
+        console.log("Client has received encrypted msg: ", encryptedMsg);
+        var sessionKey;
+        if (sessionKey == null) {
+            sessionKey = prompt("Please enter your secret session key (decrypt)");
+        }
+
+        // Decrypt password using shared session key
+        var decryptedMessage = CryptoJS.AES.decrypt(encryptedMsg, sessionKey)
+            .toString(CryptoJS.enc.Utf8);
+            console.log("Decrypted message: ", decryptedMessage);
+    }
+);
+
+// function saveSharedSessionKeyLocally(sessinoKey) {
+
+// }
