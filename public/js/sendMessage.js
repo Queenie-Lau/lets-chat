@@ -23,7 +23,11 @@ form.addEventListener('submit', function(e) {
             // Send encrypted message to the server
             socket.emit('encrypted-chat-message', ciphertext.toString());
         }
-        outputMessage(rawMessage);
+
+
+        socket.emit('message',rawMessage);
+        
+        // outputMessage(rawMessage);
         input.value = '';
     }
     input.focus();
@@ -42,5 +46,5 @@ function outputMessage(encryptedMsg) {
     ${encryptedMsg}
     </p>`
     document.querySelector('.chat-message').appendChild(div);
-    console.log("Added message to website");
+    console.log("Added message to website");   
 }

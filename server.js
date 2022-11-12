@@ -36,10 +36,10 @@ io.on('connection', socket => {
     socket.on('joinSelectedRoom', (({ username, room }) => {
         // Send welcome message on client side
         socket.emit('message', 'Welcome to Let\'s Chat');
-        console.log('Socket ID:', socket.id);
-        const currUserSocketID = socket.id;
+        socket.emit('message', `${username} has connected to the server`);
         numUsers++;
         console.log("Number of users: ", numUsers);
+        const currUserSocketID = socket.id;
         
         currUsername = username;
         var currentUserKeyDict = createSharedKeyForUser(currUserSocketID);
@@ -56,7 +56,7 @@ io.on('connection', socket => {
         });
 
         // Send username and room to client
-        socket.emit('usernameAndRoom' ,  usernameAndRoom);
+        io.emit('usernameAndRoom' ,  usernameAndRoom);
         
         // Get user public key from client
         socket.on('userAndPublicKeyDict', userAndPublicKeyDict => {
@@ -69,8 +69,13 @@ io.on('connection', socket => {
             // socket.emit('session-key', sessionKey);
         }
 
+        socket.on('receivedChatMsg', chatMsg => {
+            io.emit('message', chatMsg);
+        });
+
         console.log(`${username} has connected to the server.`);
         console.log(`User is in room: ${room}.`);
+        console.log(`Current users and rooms: `, usernameAndRoom);
         }
     ))
 
