@@ -31,9 +31,8 @@ socket.on('message', (username, message) =>
 );
 
 var currSessionKey;
-socket.on('encrypted-message', (user, encryptedMsg) =>
+socket.on('encrypted-message', (user, encryptedMsg, hashInBase64) =>
 {
-    console.log("Encrypted msg");
     console.log(user, encryptedMsg);
     console.log(`Sender ${user} and recipient ${username}`);
 
@@ -41,6 +40,13 @@ socket.on('encrypted-message', (user, encryptedMsg) =>
     if (currSessionKey == null) {
         if (user != username) { // If you're not sending the message
             currSessionKey = prompt("Enter your session key to decrypt");
+
+            var hashedCipherTextToCheck = CryptoJS.HmacSHA256(encryptedMsg, currSessionKey).toString();
+
+            if (hashedCipherTextToCheck == hashInBase64) {
+                console.log("hashInBase64ToCheck == hashInBase64", hashedCipherTextToCheck == hashInBase64);
+            }
+
             var bytes  = CryptoJS.AES.decrypt(encryptedMsg, currSessionKey, {
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7
@@ -52,6 +58,13 @@ socket.on('encrypted-message', (user, encryptedMsg) =>
 
     else if (currSessionKey != null) { // Already entered session key
         if (user != username) { // You're receiving messages
+
+            var hashedCipherTextToCheck = CryptoJS.HmacSHA256(encryptedMsg, currSessionKey).toString();
+
+            if (hashedCipherTextToCheck == hashInBase64) {
+                console.log("hashInBase64ToCheck == hashInBase64", hashedCipherTextToCheck == hashInBase64);
+            }
+
             var bytes  = CryptoJS.AES.decrypt(encryptedMsg, currSessionKey, {
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7
@@ -162,10 +175,11 @@ form.addEventListener('submit', function(e) {
             // Send encrypted message to the server
 
             // todo
-           
-            // var hash = CryptoJS.HmacSHA512(ciphertext, "user private key");
-
-            socket.emit('encrypted-chat-message', ciphertext);
+            // var promptForPrivateKey = prompt("Enter your private key");
+            var hashedCipherText = CryptoJS.HmacSHA256(ciphertext, sessionKey).toString();
+            
+            console.log("Hashed cipher text:", hashedCipherText);
+            socket.emit('encrypted-chat-message', ciphertext, hashedCipherText);
         }
 
         // Raw Message (Testing)

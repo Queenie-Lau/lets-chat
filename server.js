@@ -56,7 +56,7 @@ io.on('connection', socket => {
             userSocketID: currUserSocketID,
         });
 
-        writePubAndPrivKeyToFile(currentUserKeyDict);
+        // If we were to use RSA encryption: writePubAndPrivKeyToFile(currentUserKeyDict);
 
         usernameAndRoom.push({
             username: username,
@@ -81,10 +81,10 @@ io.on('connection', socket => {
             io.to(room).emit('message', username, chatMsg);
         });
 
-        socket.on('encrypted-chat-message', (encryptedMessage) => {
+        socket.on('encrypted-chat-message', (encryptedMessage, hashInBase64) => {
             var encryptedMsg = encryptedMessage.toString();
             console.log('Server received encrypted chat message: ', encryptedMsg); 
-            io.to(room).emit('encrypted-message', username, encryptedMsg);
+            io.to(room).emit('encrypted-message', username, encryptedMsg, hashInBase64);
         });
 
         socket.on('user-left-via-exit-room-button', (username, room) =>
