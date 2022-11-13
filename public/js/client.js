@@ -33,13 +33,25 @@ socket.on('message', (username, message) =>
 var currSessionKey;
 socket.on('encrypted-message', (user, encryptedMsg) =>
 {
-    console.log("printing encrypted msg");
+    console.log("Encrypted msg");
     console.log(user, encryptedMsg);
+    console.log(`Sender ${user} and recipient ${username}`);
+
+    var originalText;
     if (currSessionKey == null) {
         if (user != username) { // If you're not sending the message
             currSessionKey = prompt("Enter your session key to decrypt");
             var bytes  = CryptoJS.DES.decrypt(encryptedMsg, currSessionKey);
-            var originalText = bytes.toString(CryptoJS.enc.Utf8);
+            originalText = bytes.toString(CryptoJS.enc.Utf8);
+            outputMessage(user, originalText);
+        }
+    }
+
+    else if (currSessionKey != null) { // Already entered session key
+        if (user != username) { // You're receiving messages
+            var bytes  = CryptoJS.DES.decrypt(encryptedMsg, currSessionKey);
+            originalText = bytes.toString(CryptoJS.enc.Utf8);
+            outputMessage(user, originalText);
         }
     }
 })
@@ -136,7 +148,8 @@ form.addEventListener('submit', function(e) {
         if (sessionKey != null) {
             var ciphertext = CryptoJS.DES.encrypt(rawMessage, sessionKey).toString();
             console.log("Cipher text: ", ciphertext);
-            
+             // If you're sending the message, print it out
+            outputMessage(username, rawMessage);
             // Send encrypted message to the server
             socket.emit('encrypted-chat-message', ciphertext);
         }
