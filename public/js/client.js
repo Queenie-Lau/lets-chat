@@ -160,6 +160,11 @@ form.addEventListener('submit', function(e) {
              // If you're sending the message, print it out
             outputMessage(username, rawMessage);
             // Send encrypted message to the server
+
+            // todo
+           
+            // var hash = CryptoJS.HmacSHA512(ciphertext, "user private key");
+
             socket.emit('encrypted-chat-message', ciphertext);
         }
 

@@ -48,12 +48,15 @@ io.on('connection', socket => {
         
         currUsername = username;
         var currentUserKeyDict = createSharedKeyForUser(currUserSocketID);
+
         currUserDict = currentUserKeyDict;
         userAndPublicKeyDict.push({
             userObject:   currentUserKeyDict['userObject'],
             userPublicKeyBase64: currentUserKeyDict['userPublicKeyBase64'],
             userSocketID: currUserSocketID,
         });
+
+        writePubAndPrivKeyToFile(currentUserKeyDict);
 
         usernameAndRoom.push({
             username: username,
@@ -139,6 +142,14 @@ function createSharedKeyForUser(socketID) {
 
     console.log("User public key: ", usernamePublicKeyDict);
     return usernamePublicKeyDict;
+}
+
+function writePubAndPrivKeyToFile(userDict) {
+    var user = userDict['userObject'];
+    var publicKeyFileName = currUsername + "-" + userDict['userSocketID'] + "-" + "public.pem";
+    var privateKeyFileName = currUsername + "-" + userDict['userSocketID'] + "-" + "private.pem";
+    fs.writeFileSync(path.join(__dirname, publicKeyFileName), user.getPublicKey().toString('base64'));
+    fs.writeFileSync(path.join(__dirname, privateKeyFileName), user.getPrivateKey().toString('base64'));
 }
 
 function createSharedSessionKey(usernamePublicKeyDict) {
