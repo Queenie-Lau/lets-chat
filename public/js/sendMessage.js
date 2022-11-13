@@ -9,7 +9,7 @@ form.addEventListener('submit', function(e) {
     if (input.value) {
 
         if (sessionKey == null) {
-            sessionKey = prompt("Please enter your secret session key");
+            sessionKey = prompt("Enter your secret session key to encrypt");
         } // Private session key never gets sent to the server
 
         const rawMessage = input.value;
@@ -18,7 +18,7 @@ form.addEventListener('submit', function(e) {
         */
         // Encrypt using raw message and session key
         if (sessionKey != null && input.value != null) {
-            var ciphertext = CryptoJS.DES.encrypt(rawMessage.toString(), sessionKey.toString());
+            var ciphertext = CryptoJS.AES.encrypt(rawMessage.toString(), sessionKey.toString());
             console.log("Cipher text: ", ciphertext.toString());
             
             // Send encrypted message to the server

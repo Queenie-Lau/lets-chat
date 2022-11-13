@@ -41,7 +41,10 @@ socket.on('encrypted-message', (user, encryptedMsg) =>
     if (currSessionKey == null) {
         if (user != username) { // If you're not sending the message
             currSessionKey = prompt("Enter your session key to decrypt");
-            var bytes  = CryptoJS.DES.decrypt(encryptedMsg, currSessionKey);
+            var bytes  = CryptoJS.AES.decrypt(encryptedMsg, currSessionKey, {
+                mode: CryptoJS.mode.CFB,
+                padding: CryptoJS.pad.AnsiX923
+            });
             originalText = bytes.toString(CryptoJS.enc.Utf8);
             outputMessage(user, originalText);
         }
@@ -49,7 +52,10 @@ socket.on('encrypted-message', (user, encryptedMsg) =>
 
     else if (currSessionKey != null) { // Already entered session key
         if (user != username) { // You're receiving messages
-            var bytes  = CryptoJS.DES.decrypt(encryptedMsg, currSessionKey);
+            var bytes  = CryptoJS.AES.decrypt(encryptedMsg, currSessionKey, {
+                mode: CryptoJS.mode.CFB,
+                padding: CryptoJS.pad.AnsiX923
+            });
             originalText = bytes.toString(CryptoJS.enc.Utf8);
             outputMessage(user, originalText);
         }
@@ -137,7 +143,7 @@ form.addEventListener('submit', function(e) {
 
     if (input.value) {
         if (sessionKey == null) {
-            sessionKey = prompt("Please enter your secret session key");
+            sessionKey = prompt("Enter your session key to encrypt");
         } // Private session key never gets sent to the server
 
         const rawMessage = input.value;
@@ -146,7 +152,10 @@ form.addEventListener('submit', function(e) {
         */
         // Encrypt using raw message and session key
         if (sessionKey != null) {
-            var ciphertext = CryptoJS.DES.encrypt(rawMessage, sessionKey).toString();
+            var ciphertext = CryptoJS.AES.encrypt(rawMessage, sessionKey,  {
+                mode: CryptoJS.mode.CFB,
+                padding: CryptoJS.pad.AnsiX923
+              }).toString();
             console.log("Cipher text: ", ciphertext);
              // If you're sending the message, print it out
             outputMessage(username, rawMessage);
