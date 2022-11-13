@@ -21,13 +21,19 @@ socket.emit(
     { username, room }
 );
 
-socket.on('message', (message) => 
+socket.on('message', (username, message) => 
     { 
         console.log(message);
+        // Get the username of user who has sent the message
         outputMessage(username, message);
     }
     // raw message from client
 );
+
+socket.on('bot-message', (botMsg) => 
+{
+    outputMessage("Let's Chat Bot", botMsg);
+})
 
 socket.on('usernameAndRoom' ,  (usernameAndRoom) =>
     { 
