@@ -31,6 +31,7 @@ var sessionKey;
 
 var usernameAndRoom = [];
 var currUsername;
+var currRoom;
 
 io.on('connection', socket => {
     socket.on('joinSelectedRoom', (({ username, room }) => {
@@ -44,7 +45,7 @@ io.on('connection', socket => {
 
         socket.broadcast
             .to(room)
-            .emit('bot-message',`${username} has joined the chat room.`);
+            .emit('bot-message',`${username} has joined the room.`);
         
         currUsername = username;
         var currentUserKeyDict = createSharedKeyForUser(currUserSocketID);
@@ -85,10 +86,20 @@ io.on('connection', socket => {
     ))
 
     socket.on('disconnect', () => {
-        console.log('User has disconnected');
+        console.log(`${currUsername} has disconnected`);
+        // Tell the client who left the room
+        io.emit('user-left' , currUsername);
+
+        console.log("userNameAndRoomBefore", usernameAndRoom);
         const userToRemove = [currUsername];
         usernameAndRoom = usernameAndRoom.filter(obj => !userToRemove.includes(obj.username));
-        
+
+        socket.broadcast
+            .to(currRoom)
+            .emit('bot-message',`${currUsername} has left the room.`);
+         console.log("userNameAndRoomAfter", usernameAndRoom);
+
+
         if (numUsers > 0) {
             numUsers--;
         }

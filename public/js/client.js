@@ -4,7 +4,6 @@
     and used snippet of code to retrieve username and room
 */
 
-
 // Get username and room from URL
 const { username, room } = Qs.parse(
     location.search, 
@@ -35,11 +34,19 @@ socket.on('bot-message', (botMsg) =>
     outputMessage("Let's Chat Bot", botMsg);
 })
 
-socket.on('usernameAndRoom' ,  (usernameAndRoom) =>
+var listOfUsernamesAndRooms;
+socket.on('usernameAndRoom' , (usernameAndRoom) =>
     { 
         console.log("Client side usernameAndRoom: ", usernameAndRoom);
-        var listOfUsernamesAndRooms = usernameAndRoom;
+        listOfUsernamesAndRooms = usernameAndRoom;
         addUserAndRoomTitle(listOfUsernamesAndRooms);
+    }
+);
+
+socket.on('user-left', (currUserName) =>
+    { 
+        console.log("Removing the following from user list: ", currUserName)
+        removeUserUponDisconnect(listOfUsernamesAndRooms, currUserName)
     }
 );
 
@@ -74,15 +81,28 @@ function addUserAndRoomTitle(listOfUsernamesAndRooms) {
     userList.innerHTML = '';
     
     for (var i = 0; i < listOfUsernamesAndRooms.length; ++i) {
-        if (listOfUsernamesAndRooms[i].username != username) {
+        if (listOfUsernamesAndRooms[i].room == room) {
+            // If user is still in the room
             var ul = document.createElement("ul");
             userList.appendChild(ul);
             ul.innerHTML = listOfUsernamesAndRooms[i].username;
-            // replace userList content w/ string concat of the usernames + rooms dictionary
         }
     }
 
     console.log("Added room title and users to sidebar");
+}
+
+function removeUserUponDisconnect(listOfUsernamesAndRooms, username) {
+    const userList = document.getElementById('username-list');
+    for (var i = 0; i < listOfUsernamesAndRooms.length; ++i) {
+        if (listOfUsernamesAndRooms[i].room == room) {
+            var ulElement = userList.children[i];
+            if (ulElement.innerHTML == username.toString()) {
+                userList.removeChild(ulElement);
+                console.log(`Removed ${username} from user list`);
+            }
+        }
+    }
 }
 
 const form = document.getElementById('chat-message-form');
