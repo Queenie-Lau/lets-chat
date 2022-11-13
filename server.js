@@ -5,7 +5,6 @@ const application = express();
 const socketio = require('socket.io');
 var fs = require( 'fs' );
 const crypto = require('crypto');
-const CryptoJS = require('crypto-js');
 
 const addUserAndRoomTitle = require('./public/js/userJoinsServer.js');
 
@@ -79,10 +78,22 @@ io.on('connection', socket => {
             io.to(room).emit('message', username, chatMsg);
         });
 
+        socket.on('encrypted-chat-message', (encryptedMessage) => {
+            var encryptedMsg = encryptedMessage.toString();
+            console.log('Server received encrypted chat message: ', encryptedMsg); 
+            io.to(room).emit('encrypted-message', username, encryptedMsg);
+        });
+
+        socket.on('user-left-via-exit-room-button', (username, room) =>
+        {
+            // console.log("Trying to remove user: ", username)
+        });
+
         console.log(`${username} has connected to the server.`);
         console.log(`User is in room: ${room}.`);
         console.log(`Current users and rooms: `, usernameAndRoom);
         }
+
     ))
 
     socket.on('disconnect', () => {
@@ -113,16 +124,6 @@ io.on('connection', socket => {
 
 })
 
-io.on('connection', (socket) => {
-       // Server receives the encrypted chat message
-       socket.on('encrypted-chat-message', (encryptedMessage) => {
-           var encryptedMsg = encryptedMessage.toString();
-           console.log('Server received encrypted chat message: ', encryptedMsg);
-           socket.emit('encrypted-msg-to-client' ,  encryptedMsg => { 
-               console.log('Encrypted chat message: ' + encryptedMsg);
-        });
-    });
-});
 
 function createSharedKeyForUser(socketID) {
     // Each user who joins a chat room will get a generated public key

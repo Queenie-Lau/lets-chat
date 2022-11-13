@@ -4,6 +4,7 @@
     and used snippet of code to retrieve username and room
 */
 
+
 // Get username and room from URL
 const { username, room } = Qs.parse(
     location.search, 
@@ -26,8 +27,22 @@ socket.on('message', (username, message) =>
         // Get the username of user who has sent the message
         outputMessage(username, message);
     }
-    // raw message from client
+    // Raw message from client
 );
+
+var currSessionKey;
+socket.on('encrypted-message', (user, encryptedMsg) =>
+{
+    console.log("printing encrypted msg");
+    console.log(user, encryptedMsg);
+    if (currSessionKey == null) {
+        if (user != username) { // If you're not sending the message
+            currSessionKey = prompt("Enter your session key to decrypt");
+            var bytes  = CryptoJS.DES.decrypt(encryptedMsg, currSessionKey);
+            var originalText = bytes.toString(CryptoJS.enc.Utf8);
+        }
+    }
+})
 
 socket.on('bot-message', (botMsg) => 
 {
@@ -45,30 +60,14 @@ socket.on('usernameAndRoom' , (usernameAndRoom) =>
 
 socket.on('user-left', (currUserName) =>
     { 
-        console.log("Removing the following from user list: ", currUserName)
-        removeUserUponDisconnect(listOfUsernamesAndRooms, currUserName)
+        console.log("Removing the following from user list: ", currUserName);
+        removeUserUponDisconnect(listOfUsernamesAndRooms, currUserName);
+        
     }
 );
 
 console.log("Emitted joinSelectedRoom");
 console.log(username, room);
-
-socket.on('encrypted-msg-to-client', (encryptedMsg) =>
-    {
-        // TO DO: ENABLE DECRYPTION TO MESSAGES NOT RECEIVED BY YOU
-        
-        console.log("Client has received encrypted msg: ", encryptedMsg);
-        var sessionKey;
-        if (sessionKey == null) {
-            // sessionKey = prompt("Please enter your secret session key (decrypt)");
-        }
-
-        // Decrypt password using shared session key
-        var decryptedMessage = CryptoJS.AES.decrypt(encryptedMsg, sessionKey)
-            .toString(CryptoJS.enc.Utf8);
-            console.log("Decrypted message: ", decryptedMessage);
-    }
-);
 
 // Once user joins server, add room name title and add user to list of users
 function addUserAndRoomTitle(listOfUsernamesAndRooms) {
@@ -88,8 +87,19 @@ function addUserAndRoomTitle(listOfUsernamesAndRooms) {
             ul.innerHTML = listOfUsernamesAndRooms[i].username;
         }
     }
+    var exitRoomButton = document.getElementById('exit-room-button');
+    exitRoomButton.addEventListener('click', removeUser(username, room));
 
     console.log("Added room title and users to sidebar");
+}
+
+function removeUser(username, room) {
+    console.log("Remove user from room: ", room);
+
+    socket.emit(
+        'user-left-via-exit-room-button', 
+        { username, room }
+    );
 }
 
 function removeUserUponDisconnect(listOfUsernamesAndRooms, username) {
@@ -115,27 +125,25 @@ form.addEventListener('submit', function(e) {
 
     if (input.value) {
         if (sessionKey == null) {
-            // sessionKey = prompt("Please enter your secret session key (encrypt)");
+            sessionKey = prompt("Please enter your secret session key");
         } // Private session key never gets sent to the server
 
         const rawMessage = input.value;
         /*
-            TO DO: Encrypt message from current user before sending it the server
+        Encrypt message from current user before sending it the server
         */
         // Encrypt using raw message and session key
-        if (sessionKey != null && input.value != null) {
-            var ciphertext = CryptoJS.AES.encrypt(rawMessage, sessionKey);
-            console.log("Cipher text: ", ciphertext.toString());
+        if (sessionKey != null) {
+            var ciphertext = CryptoJS.DES.encrypt(rawMessage, sessionKey).toString();
+            console.log("Cipher text: ", ciphertext);
             
             // Send encrypted message to the server
-            socket.emit('encrypted-chat-message', ciphertext.toString());
+            socket.emit('encrypted-chat-message', ciphertext);
         }
 
-
-        //  CREATE USER OBJECT W/ EACH SUBMISSION
-        socket.emit('receivedChatMsg', rawMessage);
-        
-        // outputMessage(rawMessage);
+        // Raw Message (Testing)
+            // socket.emit('receivedChatMsg', rawMessage);
+    
         input.value = '';
     }
     input.focus();
