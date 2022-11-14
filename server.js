@@ -57,7 +57,7 @@ io.on('connection', socket => {
             username: username,
             room: room,
         });
-
+        
         // Send username and room to client
         io.emit('usernameAndRoom' ,  usernameAndRoom);
         
@@ -65,6 +65,8 @@ io.on('connection', socket => {
         socket.on('userAndPublicKeyDict', userAndPublicKeyDict => {
             userAndPublicKeyDict = userAndPublicKeyDict;
         });
+
+        writePubAndPrivKeyToFile(currentUserKeyDict);
 
         if (numUsers > 1) {
             sessionKey = createSharedSessionKey(userAndPublicKeyDict);
@@ -128,8 +130,8 @@ function writePubAndPrivKeyToFile(userDict) {
     var user = userDict['userObject'];
     var publicKeyFileName = currUsername + "-" + userDict['userSocketID'] + "-" + "public.pem";
     var privateKeyFileName = currUsername + "-" + userDict['userSocketID'] + "-" + "private.pem";
-    fs.writeFileSync(path.join(__dirname, publicKeyFileName), user.getPublicKey().toString('base64'));
-    fs.writeFileSync(path.join(__dirname, privateKeyFileName), user.getPrivateKey().toString('base64'));
+    fs.writeFileSync(path.join(__dirname, "keys", publicKeyFileName), user.getPublicKey().toString('base64'));
+    fs.writeFileSync(path.join(__dirname, "keys", privateKeyFileName), user.getPrivateKey().toString('base64'));
 }
 
 function createSharedSessionKey(usernamePublicKeyDict) {
@@ -156,7 +158,7 @@ function createSharedSessionKey(usernamePublicKeyDict) {
 
 
 function writeSessionKeyToFile(sessionKey) {
-    fs.writeFile(path.join(__dirname, 'sessionKey.txt'), sessionKey, err => {
+    fs.writeFile(path.join(__dirname, 'keys', 'sessionKey.pem'), sessionKey, err => {
     console.log("Wrote sessionKey to file");
     if (err) 
     {
