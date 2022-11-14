@@ -3,6 +3,7 @@ const path = require('path');
 const https = require('https');
 const application = express();
 const socketio = require('socket.io');
+var jsrsasign = require('jsrsasign');
 var fs = require( 'fs' );
 const crypto = require('crypto');
 
@@ -79,8 +80,15 @@ io.on('connection', socket => {
 
         socket.on('encrypted-chat-message', (encryptedMessage, hashInBase64) => {
             var encryptedMsg = encryptedMessage.toString();
-            console.log('Server received encrypted chat message: ', encryptedMsg); 
-            io.to(room).emit('encrypted-message', username, encryptedMsg, hashInBase64);
+            console.log('Server received encrypted chat message: ', encryptedMsg);
+
+            // Server adds signature to message before sending it to the client
+            var signature = addSignatureToMessage(encryptedMsg, currentUserKeyDict);
+
+            // Client verifies the signature
+            var isMessageVerified = verifyMessageSignature(signature, encryptedMsg, currentUserKeyDict);
+
+            io.to(room).emit('encrypted-message', username, encryptedMsg, hashInBase64, isMessageVerified);
         });
 
         }
@@ -102,7 +110,7 @@ io.on('connection', socket => {
         }
 
         if (numUsers == 0) {
-            if (fs.existsSync(path.join(__dirname, 'sessionKey.txt'))) {
+            if (fs.existsSync(path.join(__dirname, 'sessionKey.pem'))) {
                 deleteSessionKeyFile();
             }
         }
@@ -115,7 +123,8 @@ function createSharedKeyForUser(socketID) {
     // Each user who joins a chat room will get a generated public key
     const userECDH = crypto.createECDH('secp256k1');
     userECDH.generateKeys();
-    const userPublicKeyBase64 = userECDH.getPublicKey().toString('base64');
+
+    const userPublicKeyBase64 = userECDH.getPublicKey();
 
     const usernamePublicKeyDict = {
         userObject: userECDH,
@@ -130,8 +139,47 @@ function writePubAndPrivKeyToFile(userDict) {
     var user = userDict['userObject'];
     var publicKeyFileName = currUsername + "-" + userDict['userSocketID'] + "-" + "public.pem";
     var privateKeyFileName = currUsername + "-" + userDict['userSocketID'] + "-" + "private.pem";
-    fs.writeFileSync(path.join(__dirname, "keys", publicKeyFileName), user.getPublicKey().toString('base64'));
-    fs.writeFileSync(path.join(__dirname, "keys", privateKeyFileName), user.getPrivateKey().toString('base64'));
+ 
+    var publicKeyObject = user.getPublicKey().toString('hex');
+    var privateKeyObject = user.getPrivateKey().toString('hex');
+    console.log(publicKeyObject)
+    console.log(privateKeyObject)
+
+    fs.writeFileSync(path.join(__dirname, "keys", publicKeyFileName),  publicKeyObject, 'hex');
+    fs.writeFileSync(path.join(__dirname, "keys", privateKeyFileName), privateKeyObject, 'hex');
+}
+
+function addSignatureToMessage(encryptedMsg, userDict) {
+    var user = userDict['userObject'];
+    var privateKeyObject = user.getPrivateKey().toString('hex');
+
+    // Get private key
+    var sig = new jsrsasign.Signature({ "alg": 'SHA256withECDSA' });
+
+    // Sign the msg using the private key
+    sig.init({ d: privateKeyObject, curve: 'secp256k1' });
+    sig.updateString(encryptedMsg);
+    var sigValueHex = sig.sign();
+
+    // Get Digital Signature
+    console.log(`Digital Signature: ${sigValueHex}`);
+
+    return sigValueHex;
+}
+
+function verifyMessageSignature(signature, encryptedMsg, userDict) {
+    // Get the public key of user sending the message
+    var user = userDict['userObject'];
+    var publicKeyObject = user.getPublicKey().toString('hex');
+
+    var currSig = new jsrsasign.Signature({ "alg": 'SHA256withECDSA' });
+    currSig.init({ xy: publicKeyObject, curve: 'secp256k1' });
+    currSig.updateString(encryptedMsg);
+
+    // Check digital Signature
+    var result = currSig.verify(signature);
+    console.log(`Digital Signature Verification: ${result}`);
+    return result;
 }
 
 function createSharedSessionKey(usernamePublicKeyDict) {
@@ -170,7 +218,7 @@ function writeSessionKeyToFile(sessionKey) {
 
 function deleteSessionKeyFile() {
     // Delete session key file: sessionKey.tx
-    fs.unlink(path.join(__dirname, 'sessionKey.txt'), function (err) {
+    fs.unlink(path.join(__dirname, 'sessionKey.pem'), function (err) {
         if (err) throw err;
         // File has been deleted successfully
         console.log('Session key file deleted');

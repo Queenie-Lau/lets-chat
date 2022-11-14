@@ -29,8 +29,14 @@ socket.on('message', (username, message) =>
 );
 
 var currSessionKey;
-socket.on('encrypted-message', (user, encryptedMsg, hashInBase64) =>
+socket.on('encrypted-message', (user, encryptedMsg, hashInBase64, isMessageVerified) =>
 {
+    if (isMessageVerified) {
+        console.log("Digital Signature is verified.");
+    } else {
+        console.log("Digital Signature is not verified.");
+    }
+
     var originalText;
     if (currSessionKey == null) {
         if (user != username) { // If you're not sending the message
