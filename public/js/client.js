@@ -4,7 +4,6 @@
     and used snippet of code to retrieve username and room
 */
 
-
 // Get username and room from URL
 const { username, room } = Qs.parse(
     location.search, 
@@ -23,7 +22,6 @@ socket.emit(
 
 socket.on('message', (username, message) => 
     { 
-        console.log(message);
         // Get the username of user who has sent the message
         outputMessage(username, message);
     }
@@ -33,14 +31,10 @@ socket.on('message', (username, message) =>
 var currSessionKey;
 socket.on('encrypted-message', (user, encryptedMsg, hashInBase64) =>
 {
-    console.log(user, encryptedMsg);
-    console.log(`Sender ${user} and recipient ${username}`);
-
     var originalText;
     if (currSessionKey == null) {
         if (user != username) { // If you're not sending the message
             currSessionKey = prompt("Enter your session key to decrypt");
-
             var hashedCipherTextToCheck = CryptoJS.HmacSHA256(encryptedMsg, currSessionKey).toString();
 
             if (hashedCipherTextToCheck == hashInBase64) {
@@ -83,7 +77,6 @@ socket.on('bot-message', (botMsg) =>
 var listOfUsernamesAndRooms;
 socket.on('usernameAndRoom' , (usernameAndRoom) =>
     { 
-        console.log("Client side usernameAndRoom: ", usernameAndRoom);
         listOfUsernamesAndRooms = usernameAndRoom;
         addUserAndRoomTitle(listOfUsernamesAndRooms);
     }
@@ -91,14 +84,10 @@ socket.on('usernameAndRoom' , (usernameAndRoom) =>
 
 socket.on('user-left', (currUserName) =>
     { 
-        console.log("Removing the following from user list: ", currUserName);
         removeUserUponDisconnect(listOfUsernamesAndRooms, currUserName);
         
     }
 );
-
-console.log("Emitted joinSelectedRoom");
-console.log(username, room);
 
 // Once user joins server, add room name title and add user to list of users
 function addUserAndRoomTitle(listOfUsernamesAndRooms) {
@@ -120,13 +109,9 @@ function addUserAndRoomTitle(listOfUsernamesAndRooms) {
     }
     var exitRoomButton = document.getElementById('exit-room-button');
     exitRoomButton.addEventListener('click', removeUser(username, room));
-
-    console.log("Added room title and users to sidebar");
 }
 
 function removeUser(username, room) {
-    console.log("Remove user from room: ", room);
-
     socket.emit(
         'user-left-via-exit-room-button', 
         { username, room }
@@ -140,7 +125,6 @@ function removeUserUponDisconnect(listOfUsernamesAndRooms, username) {
             var ulElement = userList.children[i];
             if (ulElement.innerHTML == username.toString()) {
                 userList.removeChild(ulElement);
-                console.log(`Removed ${username} from user list`);
             }
         }
     }
@@ -160,31 +144,26 @@ form.addEventListener('submit', function(e) {
         } // Private session key never gets sent to the server
 
         const rawMessage = input.value;
+        
         /*
-        Encrypt message from current user before sending it the server
+            Encrypt message using session key before sending it the server
         */
-        // Encrypt using raw message and session key
+
         if (sessionKey != null) {
             var ciphertext = CryptoJS.AES.encrypt(rawMessage, sessionKey,  {
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7
               }).toString();
             console.log("Cipher text: ", ciphertext);
-             // If you're sending the message, print it out
-            outputMessage(username, rawMessage);
-            // Send encrypted message to the server
+            // If you're sending the message, print it out
+                outputMessage(username, rawMessage);
 
-            // todo
-            // var promptForPrivateKey = prompt("Enter your private key");
             var hashedCipherText = CryptoJS.HmacSHA256(ciphertext, sessionKey).toString();
             
-            console.log("Hashed cipher text:", hashedCipherText);
+            console.log("Hashed cipher text: ", hashedCipherText);
             socket.emit('encrypted-chat-message', ciphertext, hashedCipherText);
         }
 
-        // Raw Message (Testing)
-            // socket.emit('receivedChatMsg', rawMessage);
-    
         input.value = '';
     }
     input.focus();
@@ -224,5 +203,5 @@ function outputMessage(username, encryptedMsg) {
     `
     <p id="encrypted-msg">${encryptedMsg}</p>`
     document.querySelector('.chat-room-container').appendChild(div);
-    console.log("Added outputMessage to website");
+    chatRoomContainer.scrollTop = chatRoomContainer.scrollHeight;
 }

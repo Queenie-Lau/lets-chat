@@ -6,8 +6,6 @@ const socketio = require('socket.io');
 var fs = require( 'fs' );
 const crypto = require('crypto');
 
-const addUserAndRoomTitle = require('./public/js/userJoinsServer.js');
-
 // Set up application
 var credentials = {
     key: fs.readFileSync(path.join(__dirname, 'ssl', 'privkey.pem')),
@@ -37,9 +35,7 @@ io.on('connection', socket => {
         // Send welcome message on client side
         socket.join(room);
         socket.emit('bot-message', 'Welcome to Let\'s Chat');
-        //socket.emit('message', `${username} has connected to the server`);
         numUsers++;
-        console.log("Number of users: ", numUsers);
         const currUserSocketID = socket.id;
 
         socket.broadcast
@@ -47,6 +43,7 @@ io.on('connection', socket => {
             .emit('bot-message',`${username} has joined the room.`);
         
         currUsername = username;
+        currRoom = room;
         var currentUserKeyDict = createSharedKeyForUser(currUserSocketID);
 
         currUserDict = currentUserKeyDict;
@@ -55,8 +52,6 @@ io.on('connection', socket => {
             userPublicKeyBase64: currentUserKeyDict['userPublicKeyBase64'],
             userSocketID: currUserSocketID,
         });
-
-        // If we were to use RSA encryption: writePubAndPrivKeyToFile(currentUserKeyDict);
 
         usernameAndRoom.push({
             username: username,
@@ -74,7 +69,6 @@ io.on('connection', socket => {
         if (numUsers > 1) {
             sessionKey = createSharedSessionKey(userAndPublicKeyDict);
             console.log("Created session key");
-            // socket.emit('session-key', sessionKey);
         }
 
         socket.on('receivedChatMsg', chatMsg => {
@@ -87,32 +81,19 @@ io.on('connection', socket => {
             io.to(room).emit('encrypted-message', username, encryptedMsg, hashInBase64);
         });
 
-        socket.on('user-left-via-exit-room-button', (username, room) =>
-        {
-            // console.log("Trying to remove user: ", username)
-        });
-
-        console.log(`${username} has connected to the server.`);
-        console.log(`User is in room: ${room}.`);
-        console.log(`Current users and rooms: `, usernameAndRoom);
         }
-
     ))
 
     socket.on('disconnect', () => {
         console.log(`${currUsername} has disconnected`);
         // Tell the client who left the room
         io.emit('user-left' , currUsername);
-
-        console.log("userNameAndRoomBefore", usernameAndRoom);
         const userToRemove = [currUsername];
         usernameAndRoom = usernameAndRoom.filter(obj => !userToRemove.includes(obj.username));
 
         socket.broadcast
             .to(currRoom)
             .emit('bot-message',`${currUsername} has left the room.`);
-         console.log("userNameAndRoomAfter", usernameAndRoom);
-
 
         if (numUsers > 0) {
             numUsers--;
@@ -140,7 +121,6 @@ function createSharedKeyForUser(socketID) {
         userSocketID: socketID,
     };
 
-    console.log("User public key: ", usernamePublicKeyDict);
     return usernamePublicKeyDict;
 }
 
@@ -167,7 +147,7 @@ function createSharedSessionKey(usernamePublicKeyDict) {
     const secondUserSharedKey = 
         secondUser.computeSecret(firstUserPublicKeyBase64, 'base64', 'hex');
 
-    console.log("Shared keys should match: ", firstUserSharedKey == secondUserSharedKey);
+    console.log("firstUserSharedKey == secondUserSharedKey", firstUserSharedKey == secondUserSharedKey);
     
     writeSessionKeyToFile(firstUserSharedKey.toString());
 
@@ -177,7 +157,7 @@ function createSharedSessionKey(usernamePublicKeyDict) {
 
 function writeSessionKeyToFile(sessionKey) {
     fs.writeFile(path.join(__dirname, 'sessionKey.txt'), sessionKey, err => {
-    console.log("Wrote to sessionKey file");
+    console.log("Wrote sessionKey to file");
     if (err) 
     {
         console.error(err);
@@ -190,7 +170,7 @@ function deleteSessionKeyFile() {
     // Delete session key file: sessionKey.tx
     fs.unlink(path.join(__dirname, 'sessionKey.txt'), function (err) {
         if (err) throw err;
-        // Ffile has been deleted successfully
+        // File has been deleted successfully
         console.log('Session key file deleted');
     });
 }
