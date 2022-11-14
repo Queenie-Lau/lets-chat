@@ -217,7 +217,7 @@ function writeSessionKeyToFile(sessionKey) {
 }
 
 function deleteSessionKeyFile() {
-    // Delete session key file: sessionKey.tx
+    // Delete session key file
     fs.unlink(path.join(__dirname, 'sessionKey.pem'), function (err) {
         if (err) throw err;
         // File has been deleted successfully
