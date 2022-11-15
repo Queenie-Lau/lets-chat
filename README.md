@@ -28,6 +28,7 @@ https://localhost:3000
 * Create two usernames
 * Join the same room
 * Begin chatting!
+* To leave the room, exit both windows
 
 ### Notes
 * Navigating to https://localhost:3000 will display a potential security risk ahead warning, navigate to Advanced -> Accept the Risk and Continue (This is because I have created a self-signed certificate for the purpose of the practical and not for production.)
