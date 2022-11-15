@@ -208,13 +208,23 @@ function createSharedSessionKey(usernamePublicKeyDict) {
 
 function writeSessionKeyToFile(sessionKey) {
     fs.writeFile(path.join(__dirname, 'keys', 'sessionKey.pem'), sessionKey, err => {
-    console.log("Wrote sessionKey to file");
+    console.log("Wrote sessionKey.pem to file");
     if (err) 
     {
         console.error(err);
     }
         // Session key written written successfully
     });
+
+    // Adding for the sake of easy access to open .txt files
+    fs.writeFile(path.join(__dirname, 'keys', 'sessionKey.txt'), sessionKey, err => {
+        console.log("Wrote sessionKey.txt to file");
+        if (err) 
+        {
+            console.error(err);
+        }
+            // Session key written written successfully
+        });
 }
 
 function deleteSessionKeyFile() {
