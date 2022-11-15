@@ -20,8 +20,8 @@ Let's Chat is a fully-encrypted messaging system that enables users to safely an
 ```
 npm start
 ```
-* Open two tabs on your browser
-* Navigate to the following website
+* Open two windows (not tabs) on your browser
+* Navigate both windows to the following website
 ```
 https://localhost:3000
 ```
