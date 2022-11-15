@@ -142,8 +142,6 @@ function writePubAndPrivKeyToFile(userDict) {
  
     var publicKeyObject = user.getPublicKey().toString('hex');
     var privateKeyObject = user.getPrivateKey().toString('hex');
-    console.log(publicKeyObject)
-    console.log(privateKeyObject)
 
     fs.writeFileSync(path.join(__dirname, "keys", publicKeyFileName),  publicKeyObject, 'hex');
     fs.writeFileSync(path.join(__dirname, "keys", privateKeyFileName), privateKeyObject, 'hex');
