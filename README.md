@@ -30,8 +30,7 @@ https://localhost:3000
 * Begin chatting!
 
 ### Notes
-* Navigating to https://localhost:3000 will display a potential security risk ahead warning, navigate to Advanced -> Accept the Risk and Continue
-- This is because I have created a self-signed certificate for the purpose of the practical (not for production)
+* Navigating to https://localhost:3000 will display a potential security risk ahead warning, navigate to Advanced -> Accept the Risk and Continue (This is because I have created a self-signed certificate for the purpose of the practical and not for production.)
 * Each user's public (username-socketid-public.pem) and private keys (username-socketid-private.pem) are generated and stored locallyinside the "keys" sub-directory upon joining a room 
 * A sessionKey.pem file inside the "keys" sub-directory will be generated upon two users entering. Once both users leave, the session key will be deleted.
 - Copy and paste the contents of the session key (shared key) to encrypt and decrypt messages
