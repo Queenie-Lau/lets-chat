@@ -10,8 +10,7 @@ Let's Chat is a fully-encrypted messaging system that enables users to safely an
 
 ### Installing
 
-* Download Node.js
-Download [Node.js](https://nodejs.org/en/download/) and follow the guided information until the installation is complete.
+* Download [Node.js](https://nodejs.org/en/download/) and follow the guided information until the installation is complete.
 
 ### Executing program
 
