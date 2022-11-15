@@ -13,6 +13,9 @@ var credentials = {
     cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem')),
 };
 
+// Create keys folder
+fs.mkdirSync(path.join(__dirname, 'keys'), { recursive: true })
+
 const server = https.createServer(credentials, application);
 const io = socketio(server);
 
