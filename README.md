@@ -33,6 +33,7 @@ https://localhost:3000
 ### Notes
 * Navigating to https://localhost:3000 will display a potential security risk ahead warning, navigate to Advanced -> Accept the Risk and Continue (This is because I have created a self-signed certificate for the purpose of the practical and not for production.)
 * Each user's public (username-socketid-public.pem) and private keys (username-socketid-private.pem) are generated and stored locallyinside the "keys" sub-directory upon joining a room 
-* A sessionKey.pem file inside the "keys" sub-directory will be generated upon two users entering. Once both users leave, the session key will be deleted.
+* A sessionKey.pem file and a sessionKey.txt file inside the "keys" sub-directory will be generated upon two users entering. Once both users leave, the session key will be deleted. I have added the sessionKey.txt file for easy access due to an error I received in labs for an unrecognised or unsupported data type for .pem files.
+
 - Copy and paste the contents of the session key (shared key) to encrypt and decrypt messages
 * Open the console to view logged messages such as the cipher text, hashed cipher text, and whether the digital signature has been verified
